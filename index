@@ -1,0 +1,87 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+const pronouns = ["ich", "du", "er", "sie", "es", "wir", "ihr", "Sie"];
+
+const conjugations = {
+  present: {
+    ich: "bin",
+    du: "bist",
+    er: "ist",
+    sie: "ist",
+    es: "ist",
+    wir: "sind",
+    ihr: "seid",
+    Sie: "sind",
+  },
+  past: {
+    ich: "war",
+    du: "warst",
+    er: "war",
+    sie: "war",
+    es: "war",
+    wir: "waren",
+    ihr: "wart",
+    Sie: "waren",
+  },
+  future: {
+    ich: "werde",
+    du: "wirst",
+    er: "wird",
+    sie: "wird",
+    es: "wird",
+    wir: "werden",
+    ihr: "werdet",
+    Sie: "werden",
+  },
+};
+
+const tenses = ["present", "past", "future"];
+
+export default function VerbMindMatch() {
+  const [currentPronoun, setCurrentPronoun] = useState("ich");
+  const [currentTense, setCurrentTense] = useState("present");
+  const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+
+  const options = Object.values(conjugations[currentTense]).sort(() => 0.5 - Math.random()).slice(0, 3);
+  if (!options.includes(conjugations[currentTense][currentPronoun])) {
+    options[Math.floor(Math.random() * 3)] = conjugations[currentTense][currentPronoun];
+  }
+
+  const checkAnswer = (choice) => {
+    setSelected(choice);
+    if (choice === conjugations[currentTense][currentPronoun]) {
+      setFeedback("✅ Correct!");
+    } else {
+      setFeedback(`❌ Incorrect. It should be '${conjugations[currentTense][currentPronoun]}'`);
+    }
+  };
+
+  const nextRound = () => {
+    setCurrentPronoun(pronouns[Math.floor(Math.random() * pronouns.length)]);
+    setCurrentTense(tenses[Math.floor(Math.random() * tenses.length)]);
+    setSelected(null);
+    setFeedback(null);
+  };
+
+  return (
+    <div className="p-4 max-w-xl mx-auto text-center">
+      <h1 className="text-2xl font-bold mb-4">🧠 VerbMind Match</h1>
+      <p className="text-lg">Choose the correct verb form:</p>
+      <div className="text-xl my-4">
+        <strong>{currentPronoun}</strong> ____ (<em>{currentTense}</em>)
+      </div>
+      <div className="flex justify-center gap-4 mb-4">
+        {options.map((opt, idx) => (
+          <Button key={idx} onClick={() => checkAnswer(opt)} disabled={!!selected}>
+            {opt}
+          </Button>
+        ))}
+      </div>
+      {feedback && <div className="text-lg mb-4">{feedback}</div>}
+      {selected && <Button onClick={nextRound}>Next</Button>}
+    </div>
+  );
+}
