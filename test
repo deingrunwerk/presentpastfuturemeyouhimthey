@@ -1,0 +1,170 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+const pronouns = ["ich", "du", "er", "sie", "es", "wir", "ihr", "Sie"];
+
+const conjugations = {
+  present: {
+    ich: "bin",
+    du: "bist",
+    er: "ist",
+    sie: "ist",
+    es: "ist",
+    wir: "sind",
+    ihr: "seid",
+    Sie: "sind",
+  },
+  past: {
+    ich: "war",
+    du: "warst",
+    er: "war",
+    sie: "war",
+    es: "war",
+    wir: "waren",
+    ihr: "wart",
+    Sie: "waren",
+  },
+  future: {
+    ich: "werde",
+    du: "wirst",
+    er: "wird",
+    sie: "wird",
+    es: "wird",
+    wir: "werden",
+    ihr: "werdet",
+    Sie: "werden",
+  },
+};
+
+const tenses = ["present", "past", "future"];
+
+const silhouetteImages = {
+  ich: "/images/ich.png",
+  du: "/images/du.png",
+  er: "/images/er_sie_es.png",
+  sie: "/images/er_sie_es.png",
+  es: "/images/er_sie_es.png",
+  wir: "/images/wir.png",
+  ihr: "/images/ihr.png",
+  Sie: "/images/Sie_formal.png",
+};
+
+export default function VerbMindMatch() {
+  const [currentPronoun, setCurrentPronoun] = useState("ich");
+  const [currentTense, setCurrentTense] = useState("present");
+  const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [imageSrc, setImageSrc] = useState(silhouetteImages["ich"]);
+  const [imageError, setImageError] = useState(false);
+
+  const correctAnswer = conjugations[currentTense][currentPronoun];
+
+  const options = Object.values(conjugations[currentTense]).sort(() => 0.5 - Math.random()).slice(0, 3);
+  if (!options.includes(correctAnswer)) {
+    options[Math.floor(Math.random() * 3)] = correctAnswer;
+  }
+
+  const checkAnswer = (choice) => {
+    setSelected(choice);
+    if (choice === correctAnswer) {
+      setFeedback("✅ Correct!");
+    } else {
+      setFeedback(`❌ Incorrect. It should be '${correctAnswer}'`);
+    }
+  };
+
+  const nextRound = () => {
+    const newPronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+    const newTense = tenses[Math.floor(Math.random() * tenses.length)];
+    setCurrentPronoun(newPronoun);
+    setCurrentTense(newTense);
+    setSelected(null);
+    setFeedback(null);
+    setImageError(false);
+    setImageSrc(silhouetteImages[newPronoun] || "");
+  };
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <Tabs defaultValue="learn">
+        <TabsList className="flex justify-center gap-4 mb-4">
+          <TabsTrigger value="learn">📖 Learn</TabsTrigger>
+          <TabsTrigger value="quiz">🧠 Quiz</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="learn">
+          <Card>
+            <CardContent className="p-4 text-left">
+              <h2 className="text-xl font-bold mb-2">German Verb Conjugation: <em>sein</em> & <em>werden</em></h2>
+              <p className="mb-4">Here are the conjugations for <strong>sein</strong> (to be) and <strong>werden</strong> (to become/will) across tenses:</p>
+              <table className="w-full text-left mb-4">
+                <thead>
+                  <tr>
+                    <th>Pronoun</th>
+                    <th>Present (sein)</th>
+                    <th>Past (war)</th>
+                    <th>Future (werden)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pronouns.map((p) => (
+                    <tr key={p}>
+                      <td>{p}</td>
+                      <td>{conjugations.present[p]}</td>
+                      <td>{conjugations.past[p]}</td>
+                      <td>{conjugations.future[p]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p>Review the table, then take the quiz to test your understanding!</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="quiz">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">🧠 VerbMind Match</h1>
+            <p className="text-lg">Choose the correct verb form:</p>
+            <div className="text-xl my-4">
+              <strong>{currentPronoun}</strong> ____ (<em>{currentTense}</em>)
+            </div>
+            <div className="flex justify-center mb-4">
+              {!imageError && imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt={`Silhouette of ${currentPronoun}`}
+                  width={300}
+                  height={200}
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="text-red-600 font-semibold">
+                  🚫 No image found for "{currentPronoun}". Please check the filename in /public/images/
+                </div>
+              )}
+            </div>
+            <div className="flex justify-center gap-4 mb-4">
+              {options.map((opt, idx) => (
+                <Button key={idx} onClick={() => checkAnswer(opt)} disabled={!!selected}>
+                  {opt}
+                </Button>
+              ))}
+            </div>
+            {feedback && (
+              <div className="text-lg mb-4">
+                <div>{feedback}</div>
+                <div className="text-sm mt-2 text-gray-600">
+                  <strong>{currentPronoun}</strong> → <em>{correctAnswer}</em>
+                </div>
+              </div>
+            )}
+            {selected && <Button onClick={nextRound}>Next</Button>}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
